@@ -99,3 +99,9 @@ image*
 exp/
 cache/
 checkpoints/
+
+# Symbolic links to external repos
+diffusion_planner
+interplan
+nuplan-devkit
+tuplan_garage
