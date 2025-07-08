@@ -1,0 +1,101 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.env
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Data files (usually large)
+*.pkl
+*.pth
+*.ckpt
+*.npy
+*.npz
+
+# NuPlan specific
+*.db
+*.nuboard
+results/
+exp/
+
+*._*
+*.aux
+.bazel
+bazel-*
+*.bbl
+*.blg
+*.brf
+.coverage
+.DS_Store
+*.egg-info
+_ext
+*.gz
+.idea
+.ijwb
+*ipynb_*
+.isort.cfg
+*.jpg
+*.log
+*.o
+*.out
+*.pdf
+*.png
+.project
+*.pth.tar
+*.pyc
+**/__pycache__/
+.pydevproject
+*.so
+.vscode/*
+*.swp
+.tox/*
+.pytest_cache/*
+docs/_build/
+docs/generated/
+
+# python
+*.pyc
+**/__pycache__/
+.pytest_cache/*
+.pydevproject
+
+# IDE
+.vscode/*
+
+# Pip
+*.egg-info
+
+logs/*
+*/.vscode/*
+*/.git/*
+exp/*
+.vscode
+__pycache__/
+*.egg-info/
+ckpt/
+image*
+exp/
+cache/
+checkpoints/
