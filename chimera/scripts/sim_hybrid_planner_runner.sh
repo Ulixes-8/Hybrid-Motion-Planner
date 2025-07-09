@@ -25,7 +25,7 @@ EXPERIMENT_ID="hybrid_planner/$SPLIT/test/$(date '+%Y-%m-%d-%H-%M-%S')"
 echo "Running Hybrid Planner on test14-hard"
 echo "Experiment ID: $EXPERIMENT_ID"
 
-# Run simulation - exactly like PDM but with hybrid planner
+# Run simulation with correct searchpath for chimera configs
 python $NUPLAN_DEVKIT_ROOT/nuplan/planning/script/run_simulation.py \
     +simulation=$CHALLENGE \
     planner=hybrid_planner \
@@ -39,4 +39,4 @@ python $NUPLAN_DEVKIT_ROOT/nuplan/planning/script/run_simulation.py \
     distributed_mode='SINGLE_NODE' \
     number_of_gpus_allocated_per_simulation=0.25 \
     enable_simulation_progress_bar=true \
-    hydra.searchpath="[pkg://chimera.planning.script.config.common, pkg://chimera.planning.script.config.simulation, pkg://diffusion_planner.config.scenario_filter, pkg://diffusion_planner.config, pkg://tuplan_garage.planning.script.config.common, pkg://tuplan_garage.planning.script.config.simulation, pkg://nuplan.planning.script.config.common, pkg://nuplan.planning.script.experiments]"
+    hydra.searchpath="[pkg://chimera.config.planner, pkg://chimera.config.simulation, pkg://chimera.config.scenario_filter, pkg://diffusion_planner.config.scenario_filter, pkg://diffusion_planner.config, pkg://tuplan_garage.planning.script.config.common, pkg://tuplan_garage.planning.script.config.simulation, pkg://nuplan.planning.script.config.common, pkg://nuplan.planning.script.experiments]"

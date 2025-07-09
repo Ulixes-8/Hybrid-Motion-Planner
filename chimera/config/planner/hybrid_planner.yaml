@@ -1,54 +1,58 @@
-_target_: chimera.planners.hybrid_planner.HybridPlanner
-_convert_: 'all'
+# chimera/config/planner/hybrid_planner.yaml
+# This should match the structure of PDM and other planners
 
-# PDM Planner configuration
-pdm_planner:
-  _target_: tuplan_garage.planning.simulation.planner.pdm_planner.pdm_closed_planner.PDMClosedPlanner
+hybrid_planner:
+  _target_: chimera.planner.hybrid_planner.HybridPlanner
   _convert_: 'all'
-  trajectory_sampling:
-    _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
-    _convert_: 'all'
-    num_poses: 80
-    interval_length: 0.1
-  proposal_sampling:
-    _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
-    _convert_: 'all'
-    num_poses: 40
-    interval_length: 0.1
-  idm_policies:
-    _target_: tuplan_garage.planning.simulation.planner.pdm_planner.proposal.batch_idm_policy.BatchIDMPolicy
-    _convert_: 'all'
-    speed_limit_fraction: [0.2, 0.4, 0.6, 0.8, 1.0]
-    fallback_target_velocity: 15.0
-    min_gap_to_lead_agent: 1.0
-    headway_time: 1.5
-    accel_max: 1.5
-    decel_max: 3.0
-  lateral_offsets: [-1.0, 0.0, 1.0]
-  map_radius: 50.0
 
-# Diffusion Planner configuration
-diffusion_planner:
-  _target_: diffusion_planner.planner.planner.DiffusionPlanner
-  _convert_: 'all'
-  config:
-    _target_: diffusion_planner.utils.config.Config
+  # PDM Planner configuration
+  pdm_planner:
+    _target_: tuplan_garage.planning.simulation.planner.pdm_planner.pdm_closed_planner.PDMClosedPlanner
     _convert_: 'all'
-    args_file: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/args.json
-    guidance_fn: null  # Added this line
-  ckpt_path: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/model.pth
-  past_trajectory_sampling:
-    _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
-    _convert_: 'all'
-    num_poses: 20
-    time_horizon: 2.0
-  future_trajectory_sampling:
-    _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
-    _convert_: 'all'
-    num_poses: 80
-    time_horizon: 8.0
-  device: cpu
+    trajectory_sampling:
+      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+      _convert_: 'all'
+      num_poses: 80
+      interval_length: 0.1
+    proposal_sampling:
+      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+      _convert_: 'all'
+      num_poses: 40
+      interval_length: 0.1
+    idm_policies:
+      _target_: tuplan_garage.planning.simulation.planner.pdm_planner.proposal.batch_idm_policy.BatchIDMPolicy
+      _convert_: 'all'
+      speed_limit_fraction: [0.2, 0.4, 0.6, 0.8, 1.0]
+      fallback_target_velocity: 15.0
+      min_gap_to_lead_agent: 1.0
+      headway_time: 1.5
+      accel_max: 1.5
+      decel_max: 3.0
+    lateral_offsets: [-1.0, 0.0, 1.0]
+    map_radius: 50.0
 
-# Hybrid planner specific settings
-pdm_frequency: 10.0
-diffusion_frequency: 2.0
+  # Diffusion Planner configuration
+  diffusion_planner:
+    _target_: diffusion_planner.planner.planner.DiffusionPlanner
+    _convert_: 'all'
+    config:
+      _target_: diffusion_planner.utils.config.Config
+      _convert_: 'all'
+      args_file: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/args.json
+      guidance_fn: null
+    ckpt_path: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/model.pth
+    past_trajectory_sampling:
+      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+      _convert_: 'all'
+      num_poses: 20
+      time_horizon: 2.0
+    future_trajectory_sampling:
+      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+      _convert_: 'all'
+      num_poses: 80
+      time_horizon: 8.0
+    device: cpu
+
+  # Hybrid planner specific settings
+  pdm_frequency: 10.0
+  diffusion_frequency: 2.0
