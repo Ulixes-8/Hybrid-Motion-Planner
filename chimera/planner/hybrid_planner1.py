@@ -40,7 +40,7 @@ class TrajectoryWithMetadata:
     computation_time: float
     timestamp: float
     score: Optional[float] = None
-    progress: Optional[float] = None
+    progress_m: Optional[float] = None  # Raw progress in meters
     is_valid: Optional[bool] = None
 
 
@@ -203,6 +203,12 @@ class HybridPlanner(AbstractPlanner):
         # Update observation for scoring
         ego_state, observation = current_input.history.current_state
         
+        # Get ego speed for trapped detection
+        ego_speed_mps = float(np.hypot(
+            ego_state.dynamic_car_state.rear_axle_velocity_2d.x,
+            ego_state.dynamic_car_state.rear_axle_velocity_2d.y
+        ))
+        
         # Update PDM observation
         self._observation.update(
             ego_state=ego_state,
@@ -232,7 +238,7 @@ class HybridPlanner(AbstractPlanner):
                     computation_time=computation_time,
                     timestamp=current_time,
                     score=score_data['total_score'],
-                    progress=score_data['progress'],
+                    progress_m=score_data['progress_raw'],  # Use raw progress in meters
                     is_valid=score_data['is_valid']
                 )
                 self.last_pdm_time = current_time
@@ -259,7 +265,7 @@ class HybridPlanner(AbstractPlanner):
                     computation_time=computation_time,
                     timestamp=current_time,
                     score=score_data['total_score'],
-                    progress=score_data['progress'],
+                    progress_m=score_data['progress_raw'],  # Use raw progress in meters
                     is_valid=score_data['is_valid']
                 )
                 self.last_diffusion_time = current_time
@@ -270,7 +276,7 @@ class HybridPlanner(AbstractPlanner):
                 # Continue with PDM on diffusion failure
                 
         # Select trajectory using Leaky DDM
-        selected_trajectory = self._select_trajectory_leaky_ddm()
+        selected_trajectory = self._select_trajectory_leaky_ddm(ego_speed_mps)
         
         self._iteration += 1
         
@@ -298,7 +304,7 @@ class HybridPlanner(AbstractPlanner):
             
             # Extract individual metrics
             total_score = float(scores[0])
-            progress_raw = float(self._scorer._progress_raw[0])
+            progress_raw = float(self._scorer._progress_raw[0])  # Raw progress in meters
             
             # Get normalized progress from weighted metrics
             progress_normalized = float(self._scorer._weighted_metrics[WeightedMetricIndex.PROGRESS, 0])
@@ -316,8 +322,8 @@ class HybridPlanner(AbstractPlanner):
             
             return {
                 'total_score': total_score,
-                'progress': progress_normalized,  # Use normalized progress for trapped detection
-                'progress_raw': progress_raw,
+                'progress': progress_normalized,  
+                'progress_raw': progress_raw,  # Raw progress in meters for trapped detection
                 'is_valid': is_valid,
                 'no_collision': no_collision,
                 'drivable_area': drivable_area,
@@ -379,45 +385,49 @@ class HybridPlanner(AbstractPlanner):
                 states[0, i] = states[0, i-1]
         
         return states
-    
-    def _select_trajectory_leaky_ddm(self) -> AbstractTrajectory:
-        """Select trajectory using Leaky DDM switcher."""
-        if self.current_pdm_trajectory is None:
-            raise RuntimeError("No PDM trajectory available!")
         
-        # If no diffusion trajectory, use PDM
-        if self.current_diffusion_trajectory is None:
-            return self.current_pdm_trajectory.trajectory
-        
-        # Get scores
-        pdm_score = self.current_pdm_trajectory.score or 0.0
-        diffusion_score = self.current_diffusion_trajectory.score or 0.0
-        pdm_progress = self.current_pdm_trajectory.progress
-        
-        # # Check if diffusion was vetoed by safety
-        # safety_vetoed = not self.current_diffusion_trajectory.is_valid
-
-        safety_vetoed = (
-            self.current_diffusion_trajectory.is_valid is False and
-            self.current_diffusion_trajectory.score < 0.1
-        )
-        
-        # Use Leaky DDM to select planner
-        selected_planner, metadata = self._switcher.update_and_select(
-            pdm_score=pdm_score,
-            diffusion_score=diffusion_score,
-            pdm_progress=pdm_progress,
-            safety_vetoed=safety_vetoed
-        )
-        
-        # Log decision
-        logger.info(
-            f"LeakyDDM decision: {selected_planner.value} "
-            f"(P={metadata['P']:.3f}, PDM={pdm_score:.3f}, Diff={diffusion_score:.3f})"
-        )
-        
-        # Return selected trajectory
-        if selected_planner == PlannerType.PDM:
-            return self.current_pdm_trajectory.trajectory
-        else:
-            return self.current_diffusion_trajectory.trajectory
+    def _select_trajectory_leaky_ddm(self, ego_speed_mps: float) -> AbstractTrajectory:
+            """Select trajectory using Leaky DDM switcher."""
+            if self.current_pdm_trajectory is None:
+                raise RuntimeError("No PDM trajectory available!")
+            
+            # If no diffusion trajectory, use PDM
+            if self.current_diffusion_trajectory is None:
+                return self.current_pdm_trajectory.trajectory
+            
+            # Get scores and progress
+            pdm_score = self.current_pdm_trajectory.score or 0.0
+            diffusion_score = self.current_diffusion_trajectory.score or 0.0
+            progress_m = self.current_pdm_trajectory.progress_m  # Use PDM's progress for trapped detection
+            
+            # Check if diffusion was vetoed by safety (hard constraint violations)
+            diffusion_is_valid = self.current_diffusion_trajectory.is_valid
+            safety_vetoed = (
+                diffusion_is_valid is False and
+                self.current_diffusion_trajectory.score < 0.1
+            )
+            
+            # Use Leaky DDM to select planner
+            selected_planner, metadata = self._switcher.update_and_select(
+                pdm_score=pdm_score,
+                diffusion_score=diffusion_score,
+                ego_speed_mps=ego_speed_mps,
+                progress_m=progress_m,
+                diffusion_is_valid=diffusion_is_valid,  # Pass validity flag
+                safety_vetoed=safety_vetoed
+            )
+            
+            # Log decision with SAH-style information
+            logger.info(
+                f"LeakyDDM: {selected_planner.value} | "
+                f"P={metadata['P']:.3f} W={metadata['W']:.3f} DV={metadata['decision_value']:.3f} | "
+                f"PDM={pdm_score:.3f}({metadata['pdm_bucket']}) "
+                f"Diff={diffusion_score:.3f}({metadata['diffusion_bucket']}) | "
+                f"ne={metadata['ne']} np={metadata['np']}"
+            )
+            
+            # Return selected trajectory
+            if selected_planner == PlannerType.PDM:
+                return self.current_pdm_trajectory.trajectory
+            else:
+                return self.current_diffusion_trajectory.trajectory
