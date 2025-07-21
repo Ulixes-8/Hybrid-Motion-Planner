@@ -33,8 +33,18 @@ print("✅ Environment configured")
 # Your full test14-hard reactive runs
 simulation_results = {
     "PDM-Closed": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/pdm_closed_planner/test14-hard/baseline/2025-07-10-14-37-28",
-    "Hybrid": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/hybrid_planner/test14-hard/hybrid_planner_fixed/2025-07-09-15-58-13_full",
+    # "Hybrid": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/hybrid_planner/test14-hard/hybrid_planner_fixed/2025-07-09-15-58-13_full",
     "Diffusion": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/diffusion_planner/test14-hard/diffusion_planner_release/model_2025-07-04-15-14-17",
+    # "Hybrid MINI": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/hybrid_planner/test14-hard/hybrid_planner_fixed/2025-07-11-22-32-06",
+    # This is refinement 1
+    # "Diffusion Ref 1 MINI": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/diffusion_planner/test14-hard/diffusion_planner_release/model_2025-07-15-11-31-44", # This is Refinement 2
+    # "Diffusion Ref 2 MINI": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/diffusion_planner/test14-hard/diffusion_planner_release/model_2025-07-15-15-39-07",
+    # # Refinement 3
+    # "Diffusion Ref 3 MINI": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/diffusion_planner/test14-hard/diffusion_planner_release/model_2025-07-16-11-50-38",
+    # # Refinement 4
+    # "Diffusion Ref 4 MINI": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/diffusion_planner/test14-hard/diffusion_planner_release/model_2025-07-16-14-16-29"
+    "Diffion Refined": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/diffusion_planner/test14-hard/diffusion_planner_release/model_2025-07-16-16-20-47",
+
 }
 
 # Verify paths exist
