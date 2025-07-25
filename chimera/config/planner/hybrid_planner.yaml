@@ -1,5 +1,5 @@
 # chimera/config/planner/hybrid_planner.yaml
-# This should match the structure of PDM and other planners
+# Enhanced with scenario-aware configuration
 
 hybrid_planner:
   _target_: chimera.planner.hybrid_planner.HybridPlanner
@@ -56,3 +56,38 @@ hybrid_planner:
   # Hybrid planner specific settings
   pdm_frequency: 10.0
   diffusion_frequency: 2.0
+  
+  # Scenario-aware switching (new)
+  enable_scenario_detection: true
+  
+  # Leaky DDM configuration (enhanced with scenario parameters)
+  leaky_ddm_config:
+    # Core DDM parameters
+    alpha: 0.85  # Memory decay
+    theta_upper: 0.7  # Upper switching threshold
+    theta_lower: -0.7  # Lower switching threshold
+    
+    # Evidence processing
+    k_gain: 0.07  # Gain for score difference mapping
+    score_scale: 1.0  # Expected score range
+    
+    # Scenario detection thresholds
+    poor_threshold: 0.4
+    excellent_threshold: 0.8
+    trapped_cycles: 3
+    routine_cycles: 5
+    
+    # Bias magnitudes
+    trapped_bias: 0.175
+    routine_bias: -0.08
+    
+    # Progress thresholds
+    progress_threshold: 0.2
+    
+    # Safety
+    veto_penalty: -0.1
+    
+    # Scenario-aware parameters (new)
+    scenario_scale: 0.15  # How much scenario bias influences decisions
+    scenario_confidence_threshold: 0.6  # Min confidence to apply scenario bias
+    scenario_decay: 0.9  # Decay rate for scenario influence

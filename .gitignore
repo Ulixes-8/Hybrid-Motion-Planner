@@ -106,3 +106,7 @@ interplan
 nuplan-devkit
 tuplan_garage
 paths.txt
+quant_results.ipynb
+chimera/old
+/home/ulixes/chimera/chimera/old
+old/*

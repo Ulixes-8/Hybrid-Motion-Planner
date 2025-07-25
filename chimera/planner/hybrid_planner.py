@@ -4,6 +4,7 @@ from typing import List, Type, Optional, Dict
 from dataclasses import dataclass
 import traceback
 import numpy as np
+from enum import Enum
 
 from nuplan.planning.simulation.observation.observation_type import DetectionsTracks, Observation
 from nuplan.planning.simulation.planner.abstract_planner import (
@@ -32,6 +33,37 @@ from chimera.planner.leaky_ddm_switcher import LeakyDDMSwitcher, LeakyDDMConfig,
 logger = logging.getLogger(__name__)
 
 
+class ScenarioType(Enum):
+    """Detected scenario types based on empirical performance data"""
+    # PDM-favorable scenarios
+    FOLLOWING = "following"  # behind_long_vehicle, following_lane_with_lead
+    HIGH_SPEED = "high_speed"  # high_magnitude_speed
+    CONGESTED = "congested"  # near_multiple_vehicles, stationary_in_traffic
+    STOPPING = "stopping"  # stopping_with_lead
+    RIGHT_TURN = "right_turn"  # starting_right_turn
+    PEDESTRIAN = "pedestrian"  # waiting_for_pedestrian_to_cross
+    
+    # Diffusion-favorable scenarios
+    LANE_CHANGE = "lane_change"  # changing_lane
+    HIGH_LATERAL = "high_lateral"  # high_lateral_acceleration
+    LOW_SPEED_MANEUVER = "low_speed_maneuver"  # low_magnitude_speed
+    LEFT_TURN = "left_turn"  # starting_left_turn
+    INTERSECTION = "intersection"  # starting_straight_traffic_light_intersection_traversal
+    PICKUP_DROPOFF = "pickup_dropoff"  # traversing_pickup_dropoff
+    
+    # Neutral
+    UNKNOWN = "unknown"
+
+
+@dataclass
+class ScenarioDetectionResult:
+    """Result of scenario detection"""
+    scenario_type: ScenarioType
+    confidence: float  # 0-1
+    bias: float  # -1 (strong PDM) to +1 (strong Diffusion)
+    features: Dict[str, float]
+
+
 @dataclass
 class TrajectoryWithMetadata:
     """Container for trajectory with additional metadata."""
@@ -42,15 +74,39 @@ class TrajectoryWithMetadata:
     score: Optional[float] = None
     progress: Optional[float] = None
     is_valid: Optional[bool] = None
+    scenario_type: Optional[ScenarioType] = None
 
 
 class HybridPlanner(AbstractPlanner):
     """
     Hybrid planner using Leaky DDM switching between PDM-Closed and Diffusion Planner.
+    Now enhanced with scenario-aware switching based on empirical performance data.
     """
     
     # Inherited property
     requires_scenario: bool = False
+    
+    # Empirical performance data (win rates from your analysis)
+    SCENARIO_PERFORMANCE = {
+        # PDM wins
+        ScenarioType.FOLLOWING: {'pdm': 0.933, 'diffusion': 0.067},  # Avg of behind/following
+        ScenarioType.HIGH_SPEED: {'pdm': 0.919, 'diffusion': 0.081},
+        ScenarioType.CONGESTED: {'pdm': 0.764, 'diffusion': 0.236},  # Avg of multiple/stationary
+        ScenarioType.STOPPING: {'pdm': 0.984, 'diffusion': 0.016},
+        ScenarioType.RIGHT_TURN: {'pdm': 0.693, 'diffusion': 0.307},
+        ScenarioType.PEDESTRIAN: {'pdm': 0.882, 'diffusion': 0.118},
+        
+        # Diffusion wins
+        ScenarioType.LANE_CHANGE: {'pdm': 0.233, 'diffusion': 0.767},
+        ScenarioType.HIGH_LATERAL: {'pdm': 0.427, 'diffusion': 0.573},
+        ScenarioType.LOW_SPEED_MANEUVER: {'pdm': 0.520, 'diffusion': 0.480},
+        ScenarioType.LEFT_TURN: {'pdm': 0.330, 'diffusion': 0.670},
+        ScenarioType.INTERSECTION: {'pdm': 0.100, 'diffusion': 0.900},
+        ScenarioType.PICKUP_DROPOFF: {'pdm': 0.315, 'diffusion': 0.685},
+        
+        # Unknown - no bias
+        ScenarioType.UNKNOWN: {'pdm': 0.5, 'diffusion': 0.5},
+    }
     
     def __init__(
         self,
@@ -59,6 +115,7 @@ class HybridPlanner(AbstractPlanner):
         pdm_frequency: float = 10.0,  # Hz
         diffusion_frequency: float = 2.0,  # Hz
         leaky_ddm_config: Optional[Dict] = None,
+        enable_scenario_detection: bool = True,  # New parameter
     ):
         """
         Initialize the hybrid planner.
@@ -68,6 +125,7 @@ class HybridPlanner(AbstractPlanner):
         :param pdm_frequency: Frequency for PDM planner execution (Hz)
         :param diffusion_frequency: Frequency for Diffusion planner execution (Hz)
         :param leaky_ddm_config: Configuration for Leaky DDM switcher
+        :param enable_scenario_detection: Whether to use scenario-aware switching
         """
         self.pdm_planner = pdm_planner
         self.diffusion_planner = diffusion_planner
@@ -85,6 +143,8 @@ class HybridPlanner(AbstractPlanner):
         # State tracking
         self._iteration = 0
         self._start_time = None
+        self._enable_scenario_detection = enable_scenario_detection
+        self._current_scenario = ScenarioType.UNKNOWN
         
         # Initialize Leaky DDM switcher
         config = LeakyDDMConfig(**leaky_ddm_config) if leaky_ddm_config else LeakyDDMConfig()
@@ -108,7 +168,7 @@ class HybridPlanner(AbstractPlanner):
             interval_length=0.1
         )
 
-        logger.info(f"Initialized HybridPlanner with Leaky DDM switching")
+        logger.info(f"Initialized HybridPlanner with Leaky DDM switching (scenario detection: {enable_scenario_detection})")
     
     def initialize(self, initialization: PlannerInitialization) -> None:
         """Initialize both planners."""
@@ -182,6 +242,115 @@ class HybridPlanner(AbstractPlanner):
             dummy_states = [StateSE2(0, 0, 0), StateSE2(10, 0, 0), StateSE2(20, 0, 0)]
             self._centerline = PDMPath(dummy_states)
     
+    def _detect_scenario(self, ego_state, observation, traffic_light_data) -> ScenarioDetectionResult:
+        """
+        Detect the current driving scenario based on state and environment.
+        """
+        features = {}
+        
+        # Extract ego motion features
+        ego_speed = float(np.hypot(
+            ego_state.dynamic_car_state.rear_axle_velocity_2d.x,
+            ego_state.dynamic_car_state.rear_axle_velocity_2d.y
+        ))
+        features['ego_speed'] = ego_speed
+        
+        # Lateral acceleration (indicator of lane change/turning)
+        lateral_accel = abs(ego_state.dynamic_car_state.rear_axle_acceleration_2d.y)
+        features['lateral_accel'] = lateral_accel
+        
+        # Steering angle (turning indicator)
+        steering_angle = abs(ego_state.tire_steering_angle)
+        features['steering_angle'] = steering_angle
+        
+        # Count nearby vehicles
+        nearby_vehicles = 0
+        leading_vehicle_dist = float('inf')
+        
+        if hasattr(observation, 'tracked_objects'):
+            for obj in observation.tracked_objects:
+                if obj.tracked_object_type.name == 'VEHICLE':
+                    nearby_vehicles += 1
+                    
+                    # Check for leading vehicle
+                    rel_x = obj.center.x - ego_state.rear_axle.x
+                    rel_y = obj.center.y - ego_state.rear_axle.y
+                    # Transform to ego frame
+                    cos_h = np.cos(ego_state.rear_axle.heading)
+                    sin_h = np.sin(ego_state.rear_axle.heading)
+                    ego_x = rel_x * cos_h + rel_y * sin_h
+                    ego_y = -rel_x * sin_h + rel_y * cos_h
+                    
+                    # Check if vehicle is ahead and in same lane
+                    if ego_x > 0 and abs(ego_y) < 2.0:  # roughly in same lane
+                        dist = np.hypot(ego_x, ego_y)
+                        leading_vehicle_dist = min(leading_vehicle_dist, dist)
+        
+        features['num_nearby_vehicles'] = nearby_vehicles
+        features['leading_vehicle_dist'] = leading_vehicle_dist
+        
+        # Traffic light state
+        has_red_light = False
+        if traffic_light_data:
+            for light in traffic_light_data:
+                if hasattr(light, 'status') and light.status.name in ['RED', 'YELLOW']:
+                    has_red_light = True
+                    break
+        features['has_red_light'] = has_red_light
+        
+        # Classify scenario
+        scenario = ScenarioType.UNKNOWN
+        confidence = 0.5
+        
+        # Decision tree for scenario classification
+        if ego_speed > 15.0:  # m/s (~54 km/h)
+            scenario = ScenarioType.HIGH_SPEED
+            confidence = min(ego_speed / 25.0, 0.9)
+        
+        elif ego_speed < 5.0 and lateral_accel > 0.5:
+            scenario = ScenarioType.LOW_SPEED_MANEUVER
+            confidence = 0.8
+        
+        elif lateral_accel > 2.0 and ego_speed > 8.0:
+            scenario = ScenarioType.LANE_CHANGE
+            confidence = min(lateral_accel / 3.0, 0.9)
+        
+        elif steering_angle > 0.2:  # radians
+            # Simplified turning detection
+            if ego_state.dynamic_car_state.angular_velocity > 0:
+                scenario = ScenarioType.LEFT_TURN
+            else:
+                scenario = ScenarioType.RIGHT_TURN
+            confidence = 0.7
+        
+        elif leading_vehicle_dist < 50.0 and ego_speed > 5.0:
+            scenario = ScenarioType.FOLLOWING
+            confidence = 0.8
+        
+        elif nearby_vehicles > 5:
+            scenario = ScenarioType.CONGESTED
+            confidence = min(nearby_vehicles / 10.0, 0.9)
+        
+        elif ego_speed < 2.0 and (has_red_light or leading_vehicle_dist < 20.0):
+            scenario = ScenarioType.STOPPING
+            confidence = 0.85
+        
+        elif has_red_light and ego_speed < 10.0:
+            scenario = ScenarioType.INTERSECTION
+            confidence = 0.8
+        
+        # Calculate planner bias based on empirical performance
+        perf = self.SCENARIO_PERFORMANCE[scenario]
+        # Convert win rate to bias: -1 (PDM) to +1 (Diffusion)
+        bias = 2.0 * perf['diffusion'] - 1.0
+        
+        return ScenarioDetectionResult(
+            scenario_type=scenario,
+            confidence=confidence,
+            bias=bias,
+            features=features
+        )
+    
     def name(self) -> str:
         """Return planner name."""
         return "HybridPlanner_LeakyDDM"
@@ -202,6 +371,23 @@ class HybridPlanner(AbstractPlanner):
         
         # Update observation for scoring
         ego_state, observation = current_input.history.current_state
+        
+        # Detect scenario if enabled
+        scenario_result = None
+        if self._enable_scenario_detection:
+            scenario_result = self._detect_scenario(
+                ego_state, 
+                observation, 
+                current_input.traffic_light_data
+            )
+            self._current_scenario = scenario_result.scenario_type
+            
+            # Log scenario detection occasionally
+            if self._iteration % 10 == 0:
+                logger.info(
+                    f"Detected scenario: {scenario_result.scenario_type.value} "
+                    f"(confidence: {scenario_result.confidence:.2f}, bias: {scenario_result.bias:+.2f})"
+                )
         
         # Update PDM observation
         self._observation.update(
@@ -233,7 +419,8 @@ class HybridPlanner(AbstractPlanner):
                     timestamp=current_time,
                     score=score_data['total_score'],
                     progress=score_data['progress'],
-                    is_valid=score_data['is_valid']
+                    is_valid=score_data['is_valid'],
+                    scenario_type=self._current_scenario if scenario_result else None
                 )
                 self.last_pdm_time = current_time
                 
@@ -260,7 +447,8 @@ class HybridPlanner(AbstractPlanner):
                     timestamp=current_time,
                     score=score_data['total_score'],
                     progress=score_data['progress'],
-                    is_valid=score_data['is_valid']
+                    is_valid=score_data['is_valid'],
+                    scenario_type=self._current_scenario if scenario_result else None
                 )
                 self.last_diffusion_time = current_time
                 
@@ -270,7 +458,7 @@ class HybridPlanner(AbstractPlanner):
                 # Continue with PDM on diffusion failure
                 
         # Select trajectory using Leaky DDM
-        selected_trajectory = self._select_trajectory_leaky_ddm()
+        selected_trajectory = self._select_trajectory_leaky_ddm(scenario_result)
         
         self._iteration += 1
         
@@ -380,7 +568,7 @@ class HybridPlanner(AbstractPlanner):
         
         return states
     
-    def _select_trajectory_leaky_ddm(self) -> AbstractTrajectory:
+    def _select_trajectory_leaky_ddm(self, scenario_result: Optional[ScenarioDetectionResult]) -> AbstractTrajectory:
         """Select trajectory using Leaky DDM switcher."""
         if self.current_pdm_trajectory is None:
             raise RuntimeError("No PDM trajectory available!")
@@ -394,27 +582,44 @@ class HybridPlanner(AbstractPlanner):
         diffusion_score = self.current_diffusion_trajectory.score or 0.0
         pdm_progress = self.current_pdm_trajectory.progress
         
-        # # Check if diffusion was vetoed by safety
-        # safety_vetoed = not self.current_diffusion_trajectory.is_valid
-
+        # Check if diffusion was vetoed by safety
         safety_vetoed = (
             self.current_diffusion_trajectory.is_valid is False and
             self.current_diffusion_trajectory.score < 0.1
         )
+        
+        # Prepare scenario parameters
+        scenario_bias = None
+        scenario_confidence = None
+        if scenario_result is not None:
+            scenario_bias = scenario_result.bias
+            scenario_confidence = scenario_result.confidence
         
         # Use Leaky DDM to select planner
         selected_planner, metadata = self._switcher.update_and_select(
             pdm_score=pdm_score,
             diffusion_score=diffusion_score,
             pdm_progress=pdm_progress,
-            safety_vetoed=safety_vetoed
+            safety_vetoed=safety_vetoed,
+            scenario_bias=scenario_bias,
+            scenario_confidence=scenario_confidence
         )
         
         # Log decision
-        logger.info(
-            f"LeakyDDM decision: {selected_planner.value} "
-            f"(P={metadata['P']:.3f}, PDM={pdm_score:.3f}, Diff={diffusion_score:.3f})"
-        )
+        if scenario_result:
+            logger.info(
+                f"LeakyDDM decision: {selected_planner.value} | "
+                f"Scenario: {scenario_result.scenario_type.value} | "
+                f"P={metadata['P']:.3f} S={metadata['S']:.3f} | "
+                f"PDM={pdm_score:.3f} Diff={diffusion_score:.3f} | "
+                f"Bias={scenario_result.bias:+.3f}"
+            )
+        else:
+            logger.info(
+                f"LeakyDDM decision: {selected_planner.value} | "
+                f"P={metadata['P']:.3f} | "
+                f"PDM={pdm_score:.3f} Diff={diffusion_score:.3f}"
+            )
         
         # Return selected trajectory
         if selected_planner == PlannerType.PDM:

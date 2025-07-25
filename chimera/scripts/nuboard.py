@@ -35,8 +35,11 @@ simulation_results = {
     "PDM-Closed": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/pdm_closed_planner/test14-hard/baseline/2025-07-10-14-37-28",
     # "Hybrid": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/hybrid_planner/test14-hard/hybrid_planner_fixed/2025-07-09-15-58-13_full",
     "Diffusion": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/diffusion_planner/test14-hard/diffusion_planner_release/model_2025-07-04-15-14-17",
-    "Hybrid MINI": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/hybrid_planner/test14-hard/hybrid_planner_fixed/2025-07-11-22-32-06",
-    "Hybrid DDM MINI": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/hybrid_planner/test14-hard/hybrid_planner_fixed/2025-07-21-20-20-33",
+    "LeakyDDM": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/hybrid_planner/test14-hard/hybrid_planner_fixed/2025-07-23-22-28-22",    # "Hybrid MINI": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/hybrid_planner/test14-hard/hybrid_planner_fixed/2025-07-11-22-32-06",
+    # "Hybrid DDM MINI": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/hybrid_planner/test14-hard/hybrid_planner_fixed/2025-07-21-20-20-33",
+    # "Hybrid DDM MINI 2": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/hybrid_planner/test14-hard/hybrid_planner_fixed/2025-07-21-20-20-33",
+    # "Hybrid DDM MINI 3": "/home/ulixes/nuplan/exp/exp/simulation/closed_loop_reactive_agents/hybrid_planner/test14-hard/hybrid_planner_fixed/2025-07-23-21-43-48",
+
 
 
     # This is refinement 1
