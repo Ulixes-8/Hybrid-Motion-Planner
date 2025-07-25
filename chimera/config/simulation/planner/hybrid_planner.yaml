@@ -1,5 +1,99 @@
+# # chimera/config/planner/hybrid_planner.yaml
+# # Enhanced with scenario-aware configuration
+
+# hybrid_planner:
+#   _target_: chimera.planner.hybrid_planner.HybridPlanner
+#   _convert_: 'all'
+
+#   # PDM Planner configuration
+#   pdm_planner:
+#     _target_: tuplan_garage.planning.simulation.planner.pdm_planner.pdm_closed_planner.PDMClosedPlanner
+#     _convert_: 'all'
+#     trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 80
+#       interval_length: 0.1
+#     proposal_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 40
+#       interval_length: 0.1
+#     idm_policies:
+#       _target_: tuplan_garage.planning.simulation.planner.pdm_planner.proposal.batch_idm_policy.BatchIDMPolicy
+#       _convert_: 'all'
+#       speed_limit_fraction: [0.2, 0.4, 0.6, 0.8, 1.0]
+#       fallback_target_velocity: 15.0
+#       min_gap_to_lead_agent: 1.0
+#       headway_time: 1.5
+#       accel_max: 1.5
+#       decel_max: 3.0
+#     lateral_offsets: [-1.0, 0.0, 1.0]
+#     map_radius: 50.0
+
+#   # Diffusion Planner configuration
+#   diffusion_planner:
+#     _target_: diffusion_planner.planner.planner.DiffusionPlanner
+#     _convert_: 'all'
+#     config:
+#       _target_: diffusion_planner.utils.config.Config
+#       _convert_: 'all'
+#       args_file: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/args.json
+#       guidance_fn: null
+#     ckpt_path: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/model.pth
+#     past_trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 20
+#       time_horizon: 2.0
+#     future_trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 80
+#       time_horizon: 8.0
+#     device: cpu
+
+#   # Hybrid planner specific settings
+#   pdm_frequency: 10.0
+#   diffusion_frequency: 2.0
+  
+#   # Scenario-aware switching (new)
+#   enable_scenario_detection: true
+  
+#   # Leaky DDM configuration (enhanced with scenario parameters)
+#   leaky_ddm_config:
+#     # Core DDM parameters
+#     alpha: 0.85  # Memory decay
+#     theta_upper: 0.7  # Upper switching threshold
+#     theta_lower: -0.7  # Lower switching threshold
+    
+#     # Evidence processing
+#     k_gain: 0.07  # Gain for score difference mapping
+#     score_scale: 1.0  # Expected score range
+    
+#     # Scenario detection thresholds
+#     poor_threshold: 0.4
+#     excellent_threshold: 0.8
+#     trapped_cycles: 3
+#     routine_cycles: 5
+    
+#     # Bias magnitudes
+#     trapped_bias: 0.175
+#     routine_bias: -0.08
+    
+#     # Progress thresholds
+#     progress_threshold: 0.2
+    
+#     # Safety
+#     veto_penalty: -0.1
+    
+#     # Scenario-aware parameters (new)
+#     scenario_scale: 0.15  # How much scenario bias influences decisions
+#     scenario_confidence_threshold: 0.6  # Min confidence to apply scenario bias
+#     scenario_decay: 0.9  # Decay rate for scenario influence
+
 # chimera/config/planner/hybrid_planner.yaml
-# Enhanced with scenario-aware configuration
+# Enhanced configuration with stronger scenario-aware switching
 
 hybrid_planner:
   _target_: chimera.planner.hybrid_planner.HybridPlanner
@@ -57,37 +151,37 @@ hybrid_planner:
   pdm_frequency: 10.0
   diffusion_frequency: 2.0
   
-  # Scenario-aware switching (new)
+  # Enhanced scenario detection
   enable_scenario_detection: true
   
-  # Leaky DDM configuration (enhanced with scenario parameters)
+  # Enhanced Leaky DDM configuration for better switching
   leaky_ddm_config:
     # Core DDM parameters
-    alpha: 0.85  # Memory decay
-    theta_upper: 0.7  # Upper switching threshold
-    theta_lower: -0.7  # Lower switching threshold
+    alpha: 0.85  # Memory decay (keep same)
+    theta_upper: 0.6  # Reduced from 0.7 for faster switching
+    theta_lower: -0.6  # Symmetric threshold
     
     # Evidence processing
-    k_gain: 0.07  # Gain for score difference mapping
-    score_scale: 1.0  # Expected score range
+    k_gain: 0.1  # Increased from 0.07 for stronger score influence
+    score_scale: 1.0
     
     # Scenario detection thresholds
     poor_threshold: 0.4
-    excellent_threshold: 0.8
-    trapped_cycles: 3
-    routine_cycles: 5
+    excellent_threshold: 0.8  # Lowered from 0.85
+    trapped_cycles: 2  # Reduced from 3 for faster response
+    routine_cycles: 4  # Reduced from 5
     
     # Bias magnitudes
-    trapped_bias: 0.175
-    routine_bias: -0.08
+    trapped_bias: 0.25  # Increased from 0.175
+    routine_bias: -0.12  # Increased magnitude from -0.08
     
     # Progress thresholds
-    progress_threshold: 0.2
+    progress_threshold: 0.15  # Lowered from 0.2
     
     # Safety
-    veto_penalty: -0.1
+    veto_penalty: -0.15  # Increased from -0.1
     
-    # Scenario-aware parameters (new)
-    scenario_scale: 0.15  # How much scenario bias influences decisions
-    scenario_confidence_threshold: 0.6  # Min confidence to apply scenario bias
-    scenario_decay: 0.9  # Decay rate for scenario influence
+    # Enhanced scenario-aware parameters
+    scenario_scale: 0.3  # Increased from 0.15 for stronger scenario influence
+    scenario_confidence_threshold: 0.7  # Raised from 0.6
+    scenario_decay: 0.85  # Slower decay (was 0.9)
