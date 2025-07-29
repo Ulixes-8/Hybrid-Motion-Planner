@@ -325,12 +325,12 @@ scenario_tokens:
 log_names: null
 map_names: null
 #15% validation set. 
-num_scenarios_per_type: 3
-limit_total_scenarios: 42
+# num_scenarios_per_type: 3
+# limit_total_scenarios: 42
 
 #Full
-# num_scenarios_per_type: null
-# limit_total_scenarios: null
+num_scenarios_per_type: null
+limit_total_scenarios: null
 timestamp_threshold_s: 15
 ego_displacement_minimum_m: null
 ego_start_speed_threshold: null

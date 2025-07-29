@@ -382,99 +382,8 @@
 #     # EMPIRICAL WIN RATES (for reference)
 #     # These are built into the switcher logic
 
-# chimera/config/planner/hybrid_planner.yaml
-# HYBRID PLANNER VERSION 5 - Robust Conservative Oracle
-
-hybrid_planner:
-  _target_: chimera.planner.hybrid_planner.HybridPlanner
-  _convert_: 'all'
-
-  # PDM Planner configuration
-  pdm_planner:
-    _target_: tuplan_garage.planning.simulation.planner.pdm_planner.pdm_closed_planner.PDMClosedPlanner
-    _convert_: 'all'
-    trajectory_sampling:
-      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
-      _convert_: 'all'
-      num_poses: 80
-      interval_length: 0.1
-    proposal_sampling:
-      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
-      _convert_: 'all'
-      num_poses: 40
-      interval_length: 0.1
-    idm_policies:
-      _target_: tuplan_garage.planning.simulation.planner.pdm_planner.proposal.batch_idm_policy.BatchIDMPolicy
-      _convert_: 'all'
-      speed_limit_fraction: [0.2, 0.4, 0.6, 0.8, 1.0]
-      fallback_target_velocity: 15.0
-      min_gap_to_lead_agent: 1.0
-      headway_time: 1.5
-      accel_max: 1.5
-      decel_max: 3.0
-    lateral_offsets: [-1.0, 0.0, 1.0]
-    map_radius: 50.0
-
-  # Diffusion Planner configuration
-  diffusion_planner:
-    _target_: diffusion_planner.planner.planner.DiffusionPlanner
-    _convert_: 'all'
-    config:
-      _target_: diffusion_planner.utils.config.Config
-      _convert_: 'all'
-      args_file: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/args.json
-      guidance_fn: null
-    ckpt_path: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/model.pth
-    past_trajectory_sampling:
-      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
-      _convert_: 'all'
-      num_poses: 20
-      time_horizon: 2.0
-    future_trajectory_sampling:
-      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
-      _convert_: 'all'
-      num_poses: 80
-      time_horizon: 8.0
-    device: cpu
-
-  # Hybrid planner specific settings
-  pdm_frequency: 10.0
-  diffusion_frequency: 2.0
-  
-  # Enable scenario detection
-  enable_scenario_detection: true
-  
-  # Conservative Oracle DDM configuration
-  leaky_ddm_config:
-    # CONSERVATIVE MEMORY - don't forget what's working
-    alpha: 0.7  # Higher memory to avoid erratic switches
-    
-    # CONSERVATIVE THRESHOLDS - require strong evidence
-    theta_upper: 0.4   # Higher threshold
-    theta_lower: -0.4  # Symmetric
-    
-    # BALANCED WEIGHTS
-    scenario_weight: 0.6   # Scenario important but not overwhelming
-    score_weight: 0.4      # Score validation important
-    
-    # HIGH CONFIDENCE REQUIRED
-    min_confidence: 0.6    # Higher minimum
-    high_confidence: 0.85  # Very high for override
-    
-    # Conservative override
-    override_threshold: 0.4  # 40% win rate difference for override
-    
-    # SAFETY FIRST
-    min_switch_interval: 3   # More cycles between switches
-    min_score_threshold: 0.0 # Accept any score (don't reject trajectories)
-    score_difference_threshold: 0.05 # Lower threshold for score differences
-    
-    # VALIDATION
-    require_score_validation: true  # Must have good scores to switch
-    fallback_to_pdm: true          # PDM as safe default
-
 # # chimera/config/planner/hybrid_planner.yaml
-# # Version 6 - Empirical Override Configuration
+# # HYBRID PLANNER VERSION 5 - Robust Conservative Oracle
 
 # hybrid_planner:
 #   _target_: chimera.planner.hybrid_planner.HybridPlanner
@@ -532,42 +441,137 @@ hybrid_planner:
 #   pdm_frequency: 10.0
 #   diffusion_frequency: 2.0
   
-#   # Enable scenario detection - CRITICAL
+#   # Enable scenario detection
 #   enable_scenario_detection: true
   
-#   # Version 4: Decisive DDM configuration
+#   # Conservative Oracle DDM configuration
 #   leaky_ddm_config:
-#     # Core DDM parameters - aggressive switching
-#     alpha: 0.7  # Lower memory for faster response
-#     theta_upper: 0.3  # Lower threshold for quicker switches
-#     theta_lower: -0.3  # Symmetric
+#     # CONSERVATIVE MEMORY - don't forget what's working
+#     alpha: 0.7  # Higher memory to avoid erratic switches
     
-#     # Evidence processing
-#     k_gain: 0.05  # Reduced to rely more on scenarios
-#     score_scale: 1.0
+#     # CONSERVATIVE THRESHOLDS - require strong evidence
+#     theta_upper: 0.4   # Higher threshold
+#     theta_lower: -0.4  # Symmetric
     
-#     # Scenario detection thresholds
-#     poor_threshold: 0.4
-#     excellent_threshold: 0.8
-#     trapped_cycles: 2  # Quick response
-#     routine_cycles: 3  # Quick response
+#     # BALANCED WEIGHTS
+#     scenario_weight: 0.6   # Scenario important but not overwhelming
+#     score_weight: 0.4      # Score validation important
     
-#     # Bias magnitudes
-#     trapped_bias: 0.3  # Strong push
-#     routine_bias: -0.15  # Strong pull
+#     # HIGH CONFIDENCE REQUIRED
+#     min_confidence: 0.6    # Higher minimum
+#     high_confidence: 0.85  # Very high for override
     
-#     # Progress thresholds
-#     progress_threshold: 0.15
+#     # Conservative override
+#     override_threshold: 0.4  # 40% win rate difference for override
     
-#     # Safety
-#     veto_penalty: -0.2  # Strong penalty
+#     # SAFETY FIRST
+#     min_switch_interval: 3   # More cycles between switches
+#     min_score_threshold: 0.0 # Accept any score (don't reject trajectories)
+#     score_difference_threshold: 0.05 # Lower threshold for score differences
     
-#     # DECISIVE scenario parameters
-#     scenario_scale: 1.0  # Maximum influence
-#     scenario_confidence_threshold: 0.5  # Lower threshold
-#     scenario_decay: 0.95  # Slow decay for persistence
+#     # VALIDATION
+#     require_score_validation: true  # Must have good scores to switch
+#     fallback_to_pdm: true          # PDM as safe default
+
+# chimera/config/planner/hybrid_planner.yaml
+# HYBRID PLANNER VERSION 6 - Empirical Trust Configuration
+
+hybrid_planner:
+  _target_: chimera.planner.hybrid_planner.HybridPlanner
+  _convert_: 'all'
+
+  # PDM Planner configuration
+  pdm_planner:
+    _target_: tuplan_garage.planning.simulation.planner.pdm_planner.pdm_closed_planner.PDMClosedPlanner
+    _convert_: 'all'
+    trajectory_sampling:
+      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+      _convert_: 'all'
+      num_poses: 80
+      interval_length: 0.1
+    proposal_sampling:
+      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+      _convert_: 'all'
+      num_poses: 40
+      interval_length: 0.1
+    idm_policies:
+      _target_: tuplan_garage.planning.simulation.planner.pdm_planner.proposal.batch_idm_policy.BatchIDMPolicy
+      _convert_: 'all'
+      speed_limit_fraction: [0.2, 0.4, 0.6, 0.8, 1.0]
+      fallback_target_velocity: 15.0
+      min_gap_to_lead_agent: 1.0
+      headway_time: 1.5
+      accel_max: 1.5
+      decel_max: 3.0
+    lateral_offsets: [-1.0, 0.0, 1.0]
+    map_radius: 50.0
+
+  # Diffusion Planner configuration
+  diffusion_planner:
+    _target_: diffusion_planner.planner.planner.DiffusionPlanner
+    _convert_: 'all'
+    config:
+      _target_: diffusion_planner.utils.config.Config
+      _convert_: 'all'
+      args_file: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/args.json
+      guidance_fn: null
+    ckpt_path: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/model.pth
+    past_trajectory_sampling:
+      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+      _convert_: 'all'
+      num_poses: 20
+      time_horizon: 2.0
+    future_trajectory_sampling:
+      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+      _convert_: 'all'
+      num_poses: 80
+      time_horizon: 8.0
+    device: cpu
+
+  # Hybrid planner specific settings
+  pdm_frequency: 10.0
+  diffusion_frequency: 2.0
+  
+  # Enable scenario detection - CRITICAL
+  enable_scenario_detection: true
+  
+  # Version 6: Empirical Trust Configuration
+  leaky_ddm_config:
+    # FASTER MEMORY - adapt quickly to scenarios
+    alpha: 0.5  # Reduced from 0.7 for faster adaptation
     
-#     # Version 4 specific
-#     decisive_mode: true  # Enable decisive switching
-#     scenario_override_threshold: 0.7  # Override score-based decisions
-#     min_scenario_persistence: 5  # Stick with decisions
+    # TIGHTER THRESHOLDS - switch more readily
+    theta_upper: 0.25   # Reduced from 0.4
+    theta_lower: -0.25  # Symmetric
+    
+    # TRUST EMPIRICAL DATA
+    scenario_weight: 0.8   # Increased from 0.6 - scenarios dominate
+    score_weight: 0.2      # Reduced from 0.4 - scores are secondary
+    
+    # LOWER BARRIERS
+    min_confidence: 0.5    # Reduced from 0.6
+    high_confidence: 0.75  # Reduced from 0.85
+    
+    # AGGRESSIVE OVERRIDE for clear winners
+    override_threshold: 0.25  # Reduced from 0.4 - 25% gap triggers override
+    
+    # FAST SWITCHING
+    min_switch_interval: 1   # Reduced from 3 - minimal lockout
+    min_score_threshold: 0.0 # Keep at 0 - accept all scores
+    score_difference_threshold: 0.1  # Increased from 0.05 - less score sensitivity
+    
+    # TRUST THE DATA
+    require_score_validation: false  # Changed from true - trust scenarios
+    fallback_to_pdm: true           # Keep safety fallback
+    
+    # VERSION 6 SPECIFIC: Scenario-specific boosts
+    scenario_boosts:
+      # Extra push for scenarios with large empirical gaps
+      waiting_for_pedestrian_to_cross: -0.3  # Strong PDM bias (38.8% gap)
+      traversing_pickup_dropoff: 0.3         # Strong Diffusion bias (18% gap)
+      following_lane_with_lead: -0.2         # PDM bias (14.2% gap)
+      high_magnitude_speed: -0.2             # PDM bias (13.6% gap)
+      low_magnitude_speed: 0.2               # Diffusion bias (4.8% gap)
+    
+    # Fast decay for scenario influence
+    scenario_decay: 0.8  # Reduced from 0.95 - faster forgetting
