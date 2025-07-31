@@ -1,0 +1,1057 @@
+# # # # chimera/config/planner/hybrid_planner.yaml
+# # # # Enhanced with scenario-aware configuration
+
+# # # HYBRID PLANNER 1
+
+# # hybrid_planner:
+# #   _target_: chimera.planner.hybrid_planner.HybridPlanner
+# #   _convert_: 'all'
+
+# #   # PDM Planner configuration
+# #   pdm_planner:
+# #     _target_: tuplan_garage.planning.simulation.planner.pdm_planner.pdm_closed_planner.PDMClosedPlanner
+# #     _convert_: 'all'
+# #     trajectory_sampling:
+# #       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+# #       _convert_: 'all'
+# #       num_poses: 80
+# #       interval_length: 0.1
+# #     proposal_sampling:
+# #       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+# #       _convert_: 'all'
+# #       num_poses: 40
+# #       interval_length: 0.1
+# #     idm_policies:
+# #       _target_: tuplan_garage.planning.simulation.planner.pdm_planner.proposal.batch_idm_policy.BatchIDMPolicy
+# #       _convert_: 'all'
+# #       speed_limit_fraction: [0.2, 0.4, 0.6, 0.8, 1.0]
+# #       fallback_target_velocity: 15.0
+# #       min_gap_to_lead_agent: 1.0
+# #       headway_time: 1.5
+# #       accel_max: 1.5
+# #       decel_max: 3.0
+# #     lateral_offsets: [-1.0, 0.0, 1.0]
+# #     map_radius: 50.0
+
+# #   # Diffusion Planner configuration
+# #   diffusion_planner:
+# #     _target_: diffusion_planner.planner.planner.DiffusionPlanner
+# #     _convert_: 'all'
+# #     config:
+# #       _target_: diffusion_planner.utils.config.Config
+# #       _convert_: 'all'
+# #       args_file: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/args.json
+# #       guidance_fn: null
+# #     ckpt_path: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/model.pth
+# #     past_trajectory_sampling:
+# #       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+# #       _convert_: 'all'
+# #       num_poses: 20
+# #       time_horizon: 2.0
+# #     future_trajectory_sampling:
+# #       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+# #       _convert_: 'all'
+# #       num_poses: 80
+# #       time_horizon: 8.0
+# #     device: cpu
+
+# #   # Hybrid planner specific settings
+# #   pdm_frequency: 10.0
+# #   diffusion_frequency: 2.0
+  
+# #   # Scenario-aware switching (new)
+# #   enable_scenario_detection: true
+  
+# #   # Leaky DDM configuration (enhanced with scenario parameters)
+# #   leaky_ddm_config:
+# #     # Core DDM parameters
+# #     alpha: 0.85  # Memory decay
+# #     theta_upper: 0.7  # Upper switching threshold
+# #     theta_lower: -0.7  # Lower switching threshold
+    
+# #     # Evidence processing
+# #     k_gain: 0.07  # Gain for score difference mapping
+# #     score_scale: 1.0  # Expected score range
+    
+# #     # Scenario detection thresholds
+# #     poor_threshold: 0.4
+# #     excellent_threshold: 0.8
+# #     trapped_cycles: 3
+# #     routine_cycles: 5
+    
+# #     # Bias magnitudes
+# #     trapped_bias: 0.175
+# #     routine_bias: -0.08
+    
+# #     # Progress thresholds
+# #     progress_threshold: 0.2
+    
+# #     # Safety
+# #     veto_penalty: -0.1
+    
+# #     # Scenario-aware parameters (new)
+# #     scenario_scale: 0.15  # How much scenario bias influences decisions
+# #     scenario_confidence_threshold: 0.6  # Min confidence to apply scenario bias
+# #     scenario_decay: 0.9  # Decay rate for scenario influence
+
+# # # chimera/config/planner/hybrid_planner.yaml
+# # # Enhanced configuration with stronger scenario-aware switching
+
+
+# # # HYBRID PLANNER 2
+# # hybrid_planner:
+# #   _target_: chimera.planner.hybrid_planner.HybridPlanner
+# #   _convert_: 'all'
+
+# #   # PDM Planner configuration
+# #   pdm_planner:
+# #     _target_: tuplan_garage.planning.simulation.planner.pdm_planner.pdm_closed_planner.PDMClosedPlanner
+# #     _convert_: 'all'
+# #     trajectory_sampling:
+# #       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+# #       _convert_: 'all'
+# #       num_poses: 80
+# #       interval_length: 0.1
+# #     proposal_sampling:
+# #       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+# #       _convert_: 'all'
+# #       num_poses: 40
+# #       interval_length: 0.1
+# #     idm_policies:
+# #       _target_: tuplan_garage.planning.simulation.planner.pdm_planner.proposal.batch_idm_policy.BatchIDMPolicy
+# #       _convert_: 'all'
+# #       speed_limit_fraction: [0.2, 0.4, 0.6, 0.8, 1.0]
+# #       fallback_target_velocity: 15.0
+# #       min_gap_to_lead_agent: 1.0
+# #       headway_time: 1.5
+# #       accel_max: 1.5
+# #       decel_max: 3.0
+# #     lateral_offsets: [-1.0, 0.0, 1.0]
+# #     map_radius: 50.0
+
+# #   # Diffusion Planner configuration
+# #   diffusion_planner:
+# #     _target_: diffusion_planner.planner.planner.DiffusionPlanner
+# #     _convert_: 'all'
+# #     config:
+# #       _target_: diffusion_planner.utils.config.Config
+# #       _convert_: 'all'
+# #       args_file: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/args.json
+# #       guidance_fn: null
+# #     ckpt_path: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/model.pth
+# #     past_trajectory_sampling:
+# #       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+# #       _convert_: 'all'
+# #       num_poses: 20
+# #       time_horizon: 2.0
+# #     future_trajectory_sampling:
+# #       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+# #       _convert_: 'all'
+# #       num_poses: 80
+# #       time_horizon: 8.0
+# #     device: cpu
+
+# #   # Hybrid planner specific settings
+# #   pdm_frequency: 10.0
+# #   diffusion_frequency: 2.0
+  
+# #   # Enhanced scenario detection
+# #   enable_scenario_detection: true
+  
+# #   # Enhanced Leaky DDM configuration for better switching
+# #   leaky_ddm_config:
+# #     # Core DDM parameters
+# #     alpha: 0.85  # Memory decay (keep same)
+# #     theta_upper: 0.6  # Reduced from 0.7 for faster switching
+# #     theta_lower: -0.6  # Symmetric threshold
+    
+# #     # Evidence processing
+# #     k_gain: 0.1  # Increased from 0.07 for stronger score influence
+# #     score_scale: 1.0
+    
+# #     # Scenario detection thresholds
+# #     poor_threshold: 0.4
+# #     excellent_threshold: 0.8  # Lowered from 0.85
+# #     trapped_cycles: 2  # Reduced from 3 for faster response
+# #     routine_cycles: 4  # Reduced from 5
+    
+# #     # Bias magnitudes
+# #     trapped_bias: 0.25  # Increased from 0.175
+# #     routine_bias: -0.12  # Increased magnitude from -0.08
+    
+# #     # Progress thresholds
+# #     progress_threshold: 0.15  # Lowered from 0.2
+    
+# #     # Safety
+# #     veto_penalty: -0.15  # Increased from -0.1
+    
+# #     # Enhanced scenario-aware parameters
+# #     scenario_scale: 0.3  # Increased from 0.30 for stronger scenario influence
+# #     scenario_confidence_threshold: 0.7  # Raised from 0.6
+# #     scenario_decay: 0.85  # Slower decay (was 0.9)
+
+
+
+
+# # #     # HYBRID PLANNER 3
+
+# # # # chimera/config/planner/hybrid_planner.yaml
+# # # # Balanced configuration to prevent catastrophic failures while improving performance
+
+# # # # chimera/config/planner/hybrid_planner.yaml
+# # # # Balanced configuration to prevent catastrophic failures while improving performance
+# # # # chimera/config/planner/hybrid_planner.yaml
+# # # # Focused configuration prioritizing scenario detection and empirical performance
+
+# # # hybrid_planner:
+# # #   _target_: chimera.planner.hybrid_planner.HybridPlanner
+# # #   _convert_: 'all'
+
+# # #   # PDM Planner configuration
+# # #   pdm_planner:
+# # #     _target_: tuplan_garage.planning.simulation.planner.pdm_planner.pdm_closed_planner.PDMClosedPlanner
+# # #     _convert_: 'all'
+# # #     trajectory_sampling:
+# # #       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+# # #       _convert_: 'all'
+# # #       num_poses: 80
+# # #       interval_length: 0.1
+# # #     proposal_sampling:
+# # #       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+# # #       _convert_: 'all'
+# # #       num_poses: 40
+# # #       interval_length: 0.1
+# # #     idm_policies:
+# # #       _target_: tuplan_garage.planning.simulation.planner.pdm_planner.proposal.batch_idm_policy.BatchIDMPolicy
+# # #       _convert_: 'all'
+# # #       speed_limit_fraction: [0.2, 0.4, 0.6, 0.8, 1.0]
+# # #       fallback_target_velocity: 15.0
+# # #       min_gap_to_lead_agent: 1.0
+# # #       headway_time: 1.5
+# # #       accel_max: 1.5
+# # #       decel_max: 3.0
+# # #     lateral_offsets: [-1.0, 0.0, 1.0]
+# # #     map_radius: 50.0
+
+# # #   # Diffusion Planner configuration
+# # #   diffusion_planner:
+# # #     _target_: diffusion_planner.planner.planner.DiffusionPlanner
+# # #     _convert_: 'all'
+# # #     config:
+# # #       _target_: diffusion_planner.utils.config.Config
+# # #       _convert_: 'all'
+# # #       args_file: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/args.json
+# # #       guidance_fn: null
+# # #     ckpt_path: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/model.pth
+# # #     past_trajectory_sampling:
+# # #       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+# # #       _convert_: 'all'
+# # #       num_poses: 20
+# # #       time_horizon: 2.0
+# # #     future_trajectory_sampling:
+# # #       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+# # #       _convert_: 'all'
+# # #       num_poses: 80
+# # #       time_horizon: 8.0
+# # #     device: cpu
+
+# # #   # Hybrid planner specific settings
+# # #   pdm_frequency: 10.0        # Hz - High frequency for PDM
+# # #   diffusion_frequency: 2.0   # Hz - Lower frequency for Diffusion
+  
+# # #   # Enable scenario detection - THIS IS CRITICAL
+# # #   enable_scenario_detection: true
+  
+# # #   # Focused Leaky DDM configuration
+# # #   leaky_ddm_config:
+# # #     # Core DDM parameters
+# # #     alpha: 0.8               # Memory decay - balanced
+# # #     theta_upper: 0.5         # Switch to Diffusion threshold
+# # #     theta_lower: -0.5        # Switch to PDM threshold
+    
+# # #     # Evidence processing
+# # #     k_gain: 0.1              # Score difference influence
+    
+# # #     # SCENARIO IS KING - Strong influence
+# # #     scenario_scale: 0.6      # Very strong scenario influence
+# # #     scenario_confidence_threshold: 0.6  # Reasonable confidence requirement
+    
+# # #     # Minimal lockout for quick adaptation
+# # #     switch_lockout_cycles: 2  # Allow quick switches when scenario changes
+    
+# # #     # Score validation
+# # #     min_score_threshold: 0.05  # Only reject catastrophic scores
+
+# # # # This focused configuration:
+# # # # 1. Prioritizes scenario detection above all else
+# # # # 2. Uses empirical data to switch to the winning planner
+# # # # 3. Minimal lockout allows quick adaptation to scenario changes
+# # # # 4. Strong scenario_scale (0.6) ensures scenario drives decisions
+# # # # 5. Should achieve optimal performance by using the right planner for each scenario
+# # # #
+# # # # Expected behavior:
+# # # # - PDM for: stopping, following, pedestrians, high speed, stationary
+# # # # - Diffusion for: lane changes, intersections, pickup/dropoff, turns
+
+
+# # chimera/config/planner/hybrid_planner.yaml
+# # HYBRID PLANNER VERSION 4 - Oracle-like Performance
+
+# hybrid_planner:
+#   _target_: chimera.planner.hybrid_planner.HybridPlanner
+#   _convert_: 'all'
+
+#   # PDM Planner configuration
+#   pdm_planner:
+#     _target_: tuplan_garage.planning.simulation.planner.pdm_planner.pdm_closed_planner.PDMClosedPlanner
+#     _convert_: 'all'
+#     trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 80
+#       interval_length: 0.1
+#     proposal_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 40
+#       interval_length: 0.1
+#     idm_policies:
+#       _target_: tuplan_garage.planning.simulation.planner.pdm_planner.proposal.batch_idm_policy.BatchIDMPolicy
+#       _convert_: 'all'
+#       speed_limit_fraction: [0.2, 0.4, 0.6, 0.8, 1.0]
+#       fallback_target_velocity: 15.0
+#       min_gap_to_lead_agent: 1.0
+#       headway_time: 1.5
+#       accel_max: 1.5
+#       decel_max: 3.0
+#     lateral_offsets: [-1.0, 0.0, 1.0]
+#     map_radius: 50.0
+
+#   # Diffusion Planner configuration
+#   diffusion_planner:
+#     _target_: diffusion_planner.planner.planner.DiffusionPlanner
+#     _convert_: 'all'
+#     config:
+#       _target_: diffusion_planner.utils.config.Config
+#       _convert_: 'all'
+#       args_file: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/args.json
+#       guidance_fn: null
+#     ckpt_path: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/model.pth
+#     past_trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 20
+#       time_horizon: 2.0
+#     future_trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 80
+#       time_horizon: 8.0
+#     device: cpu
+
+#   # Hybrid planner specific settings
+#   pdm_frequency: 10.0
+#   diffusion_frequency: 2.0
+  
+#   # CRITICAL: Enable scenario detection
+#   enable_scenario_detection: true
+  
+#   # Oracle-like DDM configuration
+#   leaky_ddm_config:
+#     # IMMEDIATE SWITCHING - minimal memory
+#     alpha: 0.3  # Very low memory (fast adaptation)
+    
+#     # TIGHT THRESHOLDS - switch quickly
+#     theta_upper: 0.15   # Low threshold for fast switching
+#     theta_lower: -0.15  # Symmetric
+    
+#     # STRONG SCENARIO INFLUENCE
+#     scenario_weight: 0.85  # Scenario detection dominates (85%)
+#     score_weight: 0.15     # Score difference secondary (15%)
+    
+#     # CONFIDENCE THRESHOLDS
+#     min_confidence: 0.4    # Lower threshold to use scenario info
+#     high_confidence: 0.7   # High confidence for direct switching
+    
+#     # NO HYSTERESIS for scenarios with large gaps
+#     override_threshold: 0.3  # Win rate difference > 30% = immediate switch
+    
+#     # SAFETY
+#     min_switch_interval: 1   # Minimum cycles between switches (very low)
+    
+#     # EMPIRICAL WIN RATES (for reference)
+#     # These are built into the switcher logic
+########################################################################
+########################################################################
+########################################################################
+########################################################################
+# # chimera/config/planner/hybrid_planner.yaml
+# # HYBRID PLANNER VERSION 5 - Robust Conservative Oracle
+
+# hybrid_planner:
+#   _target_: chimera.planner.hybrid_planner.HybridPlanner
+#   _convert_: 'all'
+
+#   # PDM Planner configuration
+#   pdm_planner:
+#     _target_: tuplan_garage.planning.simulation.planner.pdm_planner.pdm_closed_planner.PDMClosedPlanner
+#     _convert_: 'all'
+#     trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 80
+#       interval_length: 0.1
+#     proposal_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 40
+#       interval_length: 0.1
+#     idm_policies:
+#       _target_: tuplan_garage.planning.simulation.planner.pdm_planner.proposal.batch_idm_policy.BatchIDMPolicy
+#       _convert_: 'all'
+#       speed_limit_fraction: [0.2, 0.4, 0.6, 0.8, 1.0]
+#       fallback_target_velocity: 15.0
+#       min_gap_to_lead_agent: 1.0
+#       headway_time: 1.5
+#       accel_max: 1.5
+#       decel_max: 3.0
+#     lateral_offsets: [-1.0, 0.0, 1.0]
+#     map_radius: 50.0
+
+#   # Diffusion Planner configuration
+#   diffusion_planner:
+#     _target_: diffusion_planner.planner.planner.DiffusionPlanner
+#     _convert_: 'all'
+#     config:
+#       _target_: diffusion_planner.utils.config.Config
+#       _convert_: 'all'
+#       args_file: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/args.json
+#       guidance_fn: null
+#     ckpt_path: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/model.pth
+#     past_trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 20
+#       time_horizon: 2.0
+#     future_trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 80
+#       time_horizon: 8.0
+#     device: cpu
+
+#   # Hybrid planner specific settings
+#   pdm_frequency: 10.0
+#   diffusion_frequency: 2.0
+  
+#   # Enable scenario detection
+#   enable_scenario_detection: true
+  
+#   # Conservative Oracle DDM configuration
+#   leaky_ddm_config:
+#     # CONSERVATIVE MEMORY - don't forget what's working
+#     alpha: 0.7  # Higher memory to avoid erratic switches
+    
+#     # CONSERVATIVE THRESHOLDS - require strong evidence
+#     theta_upper: 0.4   # Higher threshold
+#     theta_lower: -0.4  # Symmetric
+    
+#     # BALANCED WEIGHTS
+#     scenario_weight: 0.6   # Scenario important but not overwhelming
+#     score_weight: 0.4      # Score validation important
+    
+#     # HIGH CONFIDENCE REQUIRED
+#     min_confidence: 0.6    # Higher minimum
+#     high_confidence: 0.85  # Very high for override
+    
+#     # Conservative override
+#     override_threshold: 0.4  # 40% win rate difference for override
+    
+#     # SAFETY FIRST
+#     min_switch_interval: 3   # More cycles between switches
+#     min_score_threshold: 0.0 # Accept any score (don't reject trajectories)
+#     score_difference_threshold: 0.05 # Lower threshold for score differences
+    
+#     # VALIDATION
+#     require_score_validation: true  # Must have good scores to switch
+#     fallback_to_pdm: true          # PDM as safe default
+########################################################################
+########################################################################
+########################################################################
+########################################################################
+########################################################################
+
+# # chimera/config/planner/hybrid_planner.yaml
+# # HYBRID PLANNER VERSION 6 - Empirical Trust Configuration
+
+# hybrid_planner:
+#   _target_: chimera.planner.hybrid_planner.HybridPlanner
+#   _convert_: 'all'
+
+#   # PDM Planner configuration
+#   pdm_planner:
+#     _target_: tuplan_garage.planning.simulation.planner.pdm_planner.pdm_closed_planner.PDMClosedPlanner
+#     _convert_: 'all'
+#     trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 80
+#       interval_length: 0.1
+#     proposal_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 40
+#       interval_length: 0.1
+#     idm_policies:
+#       _target_: tuplan_garage.planning.simulation.planner.pdm_planner.proposal.batch_idm_policy.BatchIDMPolicy
+#       _convert_: 'all'
+#       speed_limit_fraction: [0.2, 0.4, 0.6, 0.8, 1.0]
+#       fallback_target_velocity: 15.0
+#       min_gap_to_lead_agent: 1.0
+#       headway_time: 1.5
+#       accel_max: 1.5
+#       decel_max: 3.0
+#     lateral_offsets: [-1.0, 0.0, 1.0]
+#     map_radius: 50.0
+
+#   # Diffusion Planner configuration
+#   diffusion_planner:
+#     _target_: diffusion_planner.planner.planner.DiffusionPlanner
+#     _convert_: 'all'
+#     config:
+#       _target_: diffusion_planner.utils.config.Config
+#       _convert_: 'all'
+#       args_file: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/args.json
+#       guidance_fn: null
+#     ckpt_path: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/model.pth
+#     past_trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 20
+#       time_horizon: 2.0
+#     future_trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 80
+#       time_horizon: 8.0
+#     device: cpu
+
+#   # Hybrid planner specific settings
+#   pdm_frequency: 10.0
+#   diffusion_frequency: 2.0
+  
+#   # Enable scenario detection - CRITICAL
+#   enable_scenario_detection: true
+  
+#   # Version 6: Empirical Trust Configuration
+#   leaky_ddm_config:
+#     # FASTER MEMORY - adapt quickly to scenarios
+#     alpha: 0.5  # Reduced from 0.7 for faster adaptation
+    
+#     # TIGHTER THRESHOLDS - switch more readily
+#     theta_upper: 0.25   # Reduced from 0.4
+#     theta_lower: -0.25  # Symmetric
+    
+#     # TRUST EMPIRICAL DATA
+#     scenario_weight: 0.8   # Increased from 0.6 - scenarios dominate
+#     score_weight: 0.2      # Reduced from 0.4 - scores are secondary
+    
+#     # LOWER BARRIERS
+#     min_confidence: 0.5    # Reduced from 0.6
+#     high_confidence: 0.75  # Reduced from 0.85
+    
+#     # AGGRESSIVE OVERRIDE for clear winners
+#     override_threshold: 0.25  # Reduced from 0.4 - 25% gap triggers override
+    
+#     # FAST SWITCHING
+#     min_switch_interval: 1   # Reduced from 3 - minimal lockout
+#     min_score_threshold: 0.0 # Keep at 0 - accept all scores
+#     score_difference_threshold: 0.1  # Increased from 0.05 - less score sensitivity
+    
+#     # TRUST THE DATA
+#     require_score_validation: false  # Changed from true - trust scenarios
+#     fallback_to_pdm: true           # Keep safety fallback
+    
+#     # VERSION 6 SPECIFIC: Scenario-specific boosts
+#     scenario_boosts:
+#       # Extra push for scenarios with large empirical gaps
+#       waiting_for_pedestrian_to_cross: -0.3  # Strong PDM bias (38.8% gap)
+#       traversing_pickup_dropoff: 0.3         # Strong Diffusion bias (18% gap)
+#       following_lane_with_lead: -0.2         # PDM bias (14.2% gap)
+#       high_magnitude_speed: -0.2             # PDM bias (13.6% gap)
+#       low_magnitude_speed: 0.2               # Diffusion bias (4.8% gap)
+    
+#     # Fast decay for scenario influence
+#     scenario_decay: 0.8  # Reduced from 0.95 - faster forgetting
+
+# # chimera/config/planner/hybrid_planner.yaml
+# # HYBRID PLANNER VERSION 5_1 - Enhanced Scoring Configuration
+
+# hybrid_planner:
+#   _target_: chimera.planner.hybrid_planner.HybridPlanner
+#   _convert_: 'all'
+
+#   # PDM Planner configuration
+#   pdm_planner:
+#     _target_: tuplan_garage.planning.simulation.planner.pdm_planner.pdm_closed_planner.PDMClosedPlanner
+#     _convert_: 'all'
+#     trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 80
+#       interval_length: 0.1
+#     proposal_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 40
+#       interval_length: 0.1
+#     idm_policies:
+#       _target_: tuplan_garage.planning.simulation.planner.pdm_planner.proposal.batch_idm_policy.BatchIDMPolicy
+#       _convert_: 'all'
+#       speed_limit_fraction: [0.2, 0.4, 0.6, 0.8, 1.0]
+#       fallback_target_velocity: 15.0
+#       min_gap_to_lead_agent: 1.0
+#       headway_time: 1.5
+#       accel_max: 1.5
+#       decel_max: 3.0
+#     lateral_offsets: [-1.0, 0.0, 1.0]
+#     map_radius: 50.0
+
+#   # Diffusion Planner configuration
+#   diffusion_planner:
+#     _target_: diffusion_planner.planner.planner.DiffusionPlanner
+#     _convert_: 'all'
+#     config:
+#       _target_: diffusion_planner.utils.config.Config
+#       _convert_: 'all'
+#       args_file: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/args.json
+#       guidance_fn: null
+#     ckpt_path: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/model.pth
+#     past_trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 20
+#       time_horizon: 2.0
+#     future_trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 80
+#       time_horizon: 8.0
+#     device: cpu
+
+#   # Hybrid planner specific settings
+#   pdm_frequency: 10.0
+#   diffusion_frequency: 2.0
+  
+#   # Enable scenario detection - CRITICAL
+#   enable_scenario_detection: true
+  
+#   # VERSION 6 SPECIFIC: Enable enhanced scoring
+#   # Note: Set to false if experiencing compatibility issues
+#   # When false, uses scenario-based switching with original PDM scoring
+#   enable_enhanced_scoring: true
+  
+#   # Version 6: Enhanced Scoring Configuration
+#   leaky_ddm_config:
+#     # ADAPTIVE MEMORY - balance between stability and responsiveness
+#     alpha: 0.6  # Slightly higher than v5 for stability with better scoring
+    
+#     # REFINED THRESHOLDS - optimized for enhanced scoring
+#     theta_upper: 0.3   # Tighter than v5 to leverage better score differentiation
+#     theta_lower: -0.3  # Symmetric
+    
+#     # BALANCED WEIGHTS - trust both enhanced scores and scenarios
+#     scenario_weight: 0.7   # Still trust scenarios but less than pure empirical
+#     score_weight: 0.3      # Enhanced scores are more meaningful now
+    
+#     # MODERATE CONFIDENCE
+#     min_confidence: 0.55   # Slightly higher than empirical trust
+#     high_confidence: 0.8   # High but achievable
+    
+#     # OVERRIDE for significant differences
+#     override_threshold: 0.3  # 30% gap for override
+    
+#     # REASONABLE SWITCHING
+#     min_switch_interval: 2   # Allow quick adaptation but prevent oscillation
+#     min_score_threshold: 0.0 # Accept all scores
+#     score_difference_threshold: 0.08  # Slightly tighter with better scoring
+    
+#     # ENHANCED SCORING TRUST
+#     require_score_validation: false  # Trust the enhanced scorer
+#     fallback_to_pdm: true           # Keep safety fallback
+    
+#     # VERSION 6 SPECIFIC: Scenario-specific boosts
+#     # These work in conjunction with enhanced scoring
+#     scenario_boosts:
+#       # Strong empirical differences get boosts
+#       waiting_for_pedestrian_to_cross: -0.25  # PDM boost (38.8% gap)
+#       traversing_pickup_dropoff: 0.25         # Diffusion boost (18% gap)
+#       following_lane_with_lead: -0.15         # PDM boost (14.2% gap)
+#       high_magnitude_speed: -0.15             # PDM boost (13.6% gap)
+      
+#       # Moderate differences get smaller boosts
+#       changing_lane: 0.1                      # Diffusion boost (3.7% gap)
+#       low_magnitude_speed: 0.15               # Diffusion boost (4.8% gap)
+#       starting_left_turn: 0.1                 # Diffusion boost (3% gap)
+      
+#       # Small differences rely more on enhanced scoring
+#       near_multiple_vehicles: -0.05           # Small PDM boost
+#       starting_right_turn: -0.05              # Small PDM boost
+    
+#     # Moderate decay for scenario influence
+#     scenario_decay: 0.85  # Balanced between v5 (0.95) and empirical (0.8)
+
+# # Alternative configuration for compatibility mode (no enhanced scoring)
+# # Uncomment the line below to use scenario-based switching without enhanced scoring:
+# # enable_enhanced_scoring: false
+############################################################################
+# chimera/config/planner/hybrid_planner.yaml
+# HYBRID PLANNER VERSION 5_2 - Enhanced Scoring System
+
+hybrid_planner:
+  _target_: chimera.planner.hybrid_planner.HybridPlanner
+  _convert_: 'all'
+
+  # PDM Planner configuration
+  pdm_planner:
+    _target_: tuplan_garage.planning.simulation.planner.pdm_planner.pdm_closed_planner.PDMClosedPlanner
+    _convert_: 'all'
+    trajectory_sampling:
+      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+      _convert_: 'all'
+      num_poses: 80
+      interval_length: 0.1
+    proposal_sampling:
+      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+      _convert_: 'all'
+      num_poses: 40
+      interval_length: 0.1
+    idm_policies:
+      _target_: tuplan_garage.planning.simulation.planner.pdm_planner.proposal.batch_idm_policy.BatchIDMPolicy
+      _convert_: 'all'
+      speed_limit_fraction: [0.2, 0.4, 0.6, 0.8, 1.0]
+      fallback_target_velocity: 15.0
+      min_gap_to_lead_agent: 1.0
+      headway_time: 1.5
+      accel_max: 1.5
+      decel_max: 3.0
+    lateral_offsets: [-1.0, 0.0, 1.0]
+    map_radius: 50.0
+
+  # Diffusion Planner configuration
+  diffusion_planner:
+    _target_: diffusion_planner.planner.planner.DiffusionPlanner
+    _convert_: 'all'
+    config:
+      _target_: diffusion_planner.utils.config.Config
+      _convert_: 'all'
+      args_file: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/args.json
+      guidance_fn: null
+    ckpt_path: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/model.pth
+    past_trajectory_sampling:
+      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+      _convert_: 'all'
+      num_poses: 20
+      time_horizon: 2.0
+    future_trajectory_sampling:
+      _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+      _convert_: 'all'
+      num_poses: 80
+      time_horizon: 8.0
+    device: cpu
+
+  # Hybrid planner specific settings
+  pdm_frequency: 10.0
+  diffusion_frequency: 2.0
+  
+  # Enable scenario detection
+  enable_scenario_detection: true
+  
+  # Conservative Oracle DDM configuration - KEEPING ALL V5 PARAMETERS
+  leaky_ddm_config:
+    # CONSERVATIVE MEMORY - don't forget what's working
+    alpha: 0.7  # Higher memory to avoid erratic switches
+    
+    # CONSERVATIVE THRESHOLDS - require strong evidence
+    theta_upper: 0.4   # Higher threshold
+    theta_lower: -0.4  # Symmetric
+    
+    # BALANCED WEIGHTS
+    scenario_weight: 0.6   # Scenario important but not overwhelming
+    score_weight: 0.4      # Score validation important
+    
+    # HIGH CONFIDENCE REQUIRED
+    min_confidence: 0.6    # Higher minimum
+    high_confidence: 0.85  # Very high for override
+    
+    # Conservative override
+    override_threshold: 0.4  # 40% win rate difference for override
+    
+    # SAFETY FIRST
+    min_switch_interval: 3   # More cycles between switches
+    min_score_threshold: 0.0 # Accept any score (don't reject trajectories)
+    score_difference_threshold: 0.05 # Lower threshold for score differences
+    
+    # VALIDATION
+    require_score_validation: true  # Must have good scores to switch
+    fallback_to_pdm: true          # PDM as safe default
+    
+    # VERSION 6 ADDITIONS - ONLY ADDING NEW PARAMETERS
+    # Enhanced metrics weight (new parameter)
+    enhanced_metrics_weight: 0.6   # Weight for novel metrics in decision making
+    
+    # Enhanced metric preferences by scenario (new parameter)
+    metric_preferences:
+      changing_lane:
+        trajectory_efficiency: 0.3
+        maneuver_preparedness: 0.4
+        social_compliance: 0.3
+      
+      traversing_pickup_dropoff:
+        spatial_utilization: 0.5
+        trajectory_consistency: 0.3
+        social_compliance: 0.2
+      
+      high_magnitude_speed:
+        trajectory_efficiency: 0.4
+        trajectory_consistency: 0.4
+        social_compliance: 0.2
+      
+      starting_left_turn:
+        maneuver_preparedness: 0.4
+        spatial_utilization: 0.3
+        trajectory_consistency: 0.3
+      
+      following_lane_with_lead:
+        social_compliance: 0.5
+        trajectory_consistency: 0.3
+        trajectory_efficiency: 0.2
+      
+      low_magnitude_speed:
+        spatial_utilization: 0.5
+        trajectory_consistency: 0.3
+        trajectory_efficiency: 0.2
+      
+      starting_straight_traffic_light_intersection_traversal:
+        maneuver_preparedness: 0.4
+        social_compliance: 0.3
+        trajectory_efficiency: 0.3
+      
+      high_lateral_acceleration:
+        trajectory_efficiency: 0.3
+        spatial_utilization: 0.4
+        trajectory_consistency: 0.3
+      
+      starting_right_turn:
+        maneuver_preparedness: 0.4
+        spatial_utilization: 0.3
+        trajectory_consistency: 0.3
+      
+      stationary_in_traffic:
+        social_compliance: 0.6
+        trajectory_consistency: 0.4
+        trajectory_efficiency: 0.0
+      
+      stopping_with_lead:
+        social_compliance: 0.5
+        trajectory_consistency: 0.3
+        spatial_utilization: 0.2
+      
+      waiting_for_pedestrian_to_cross:
+        social_compliance: 0.4
+        trajectory_consistency: 0.4
+        spatial_utilization: 0.2
+      
+      behind_long_vehicle:
+        social_compliance: 0.5
+        trajectory_consistency: 0.3
+        maneuver_preparedness: 0.2
+      
+      near_multiple_vehicles:
+        social_compliance: 0.4
+        spatial_utilization: 0.3
+        trajectory_consistency: 0.3
+############################################################################
+############################################################################
+############################################################################
+
+# # chimera/config/planner/hybrid_planner.yaml
+# # HYBRID PLANNER VERSION 5.3 - Enhanced Scoring System (Version 5 + Novel Metrics)
+# # 
+# # V5.3 Key Enhancement: Enhanced metrics can now override safety fallback decisions
+
+
+# hybrid_planner:
+#   _target_: chimera.planner.hybrid_planner.HybridPlanner
+#   _convert_: 'all'
+
+#   # PDM Planner configuration
+#   pdm_planner:
+#     _target_: tuplan_garage.planning.simulation.planner.pdm_planner.pdm_closed_planner.PDMClosedPlanner
+#     _convert_: 'all'
+#     trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 80
+#       interval_length: 0.1
+#     proposal_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 40
+#       interval_length: 0.1
+#     idm_policies:
+#       _target_: tuplan_garage.planning.simulation.planner.pdm_planner.proposal.batch_idm_policy.BatchIDMPolicy
+#       _convert_: 'all'
+#       speed_limit_fraction: [0.2, 0.4, 0.6, 0.8, 1.0]
+#       fallback_target_velocity: 15.0
+#       min_gap_to_lead_agent: 1.0
+#       headway_time: 1.5
+#       accel_max: 1.5
+#       decel_max: 3.0
+#     lateral_offsets: [-1.0, 0.0, 1.0]
+#     map_radius: 50.0
+
+#   # Diffusion Planner configuration
+#   diffusion_planner:
+#     _target_: diffusion_planner.planner.planner.DiffusionPlanner
+#     _convert_: 'all'
+#     config:
+#       _target_: diffusion_planner.utils.config.Config
+#       _convert_: 'all'
+#       args_file: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/args.json
+#       guidance_fn: null
+#     ckpt_path: ${oc.env:HOME}/chimera/diffusion_planner/checkpoints/model.pth
+#     past_trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 20
+#       time_horizon: 2.0
+#     future_trajectory_sampling:
+#       _target_: nuplan.planning.simulation.trajectory.trajectory_sampling.TrajectorySampling
+#       _convert_: 'all'
+#       num_poses: 80
+#       time_horizon: 8.0
+#     device: cpu
+
+#   # Hybrid planner specific settings
+#   pdm_frequency: 10.0
+#   diffusion_frequency: 2.0
+  
+#   # Enable scenario detection
+#   enable_scenario_detection: true
+  
+#   # Conservative Oracle DDM configuration - KEEPING ALL V5 PARAMETERS
+#   leaky_ddm_config:
+#     # CONSERVATIVE MEMORY - don't forget what's working
+#     alpha: 0.7  # Higher memory to avoid erratic switches
+    
+#     # CONSERVATIVE THRESHOLDS - require strong evidence
+#     theta_upper: 0.4   # Higher threshold
+#     theta_lower: -0.4  # Symmetric
+    
+#     # BALANCED WEIGHTS
+#     scenario_weight: 0.6   # Scenario important but not overwhelming
+#     score_weight: 0.4      # Score validation important
+    
+#     # HIGH CONFIDENCE REQUIRED
+#     min_confidence: 0.6    # Higher minimum
+#     high_confidence: 0.85  # Very high for override
+    
+#     # Conservative override
+#     override_threshold: 0.4  # 40% win rate difference for override
+    
+#     # SAFETY FIRST
+#     min_switch_interval: 3   # More cycles between switches
+#     min_score_threshold: 0.0 # Accept any score (don't reject trajectories)
+#     score_difference_threshold: 0.05 # Lower threshold for score differences
+    
+#     # VALIDATION
+#     require_score_validation: true  # Must have good scores to switch
+#     fallback_to_pdm: true          # PDM as safe default
+    
+#     # VERSION 6 ADDITIONS - ONLY ADDING NEW PARAMETERS
+#     # Enhanced metrics weight (new parameter)
+#     enhanced_metrics_weight: 0.6   # Weight for novel metrics in decision making
+    
+#     # Safety fallback threshold (new parameter for debugging)
+#     # If both planners score below this threshold, PDM is selected UNLESS enhanced metrics override
+#     # Set to 0.0 to effectively disable safety fallback (for debugging only!)
+#     # Set to smaller values (e.g., 0.001) if both planners consistently score very low
+#     safety_fallback_threshold: 0.01  # Both scores must be below this to trigger safety fallback
+    
+#     # Enhanced metric override gap (new parameter)
+#     # If enhanced metrics differ by more than this amount, they can override safety fallback
+#     # This allows the better-performing planner to be selected even with low base scores
+#     enhanced_metric_override_gap: 0.15  # Minimum gap in enhanced metrics to override safety fallback
+    
+#     # Enhanced metric preferences by scenario (new parameter)
+#     metric_preferences:
+#       changing_lane:
+#         trajectory_efficiency: 0.3
+#         maneuver_preparedness: 0.4
+#         social_compliance: 0.3
+      
+#       traversing_pickup_dropoff:
+#         spatial_utilization: 0.5
+#         trajectory_consistency: 0.3
+#         social_compliance: 0.2
+      
+#       high_magnitude_speed:
+#         trajectory_efficiency: 0.4
+#         trajectory_consistency: 0.4
+#         social_compliance: 0.2
+      
+#       starting_left_turn:
+#         maneuver_preparedness: 0.4
+#         spatial_utilization: 0.3
+#         trajectory_consistency: 0.3
+      
+#       following_lane_with_lead:
+#         social_compliance: 0.5
+#         trajectory_consistency: 0.3
+#         trajectory_efficiency: 0.2
+      
+#       low_magnitude_speed:
+#         spatial_utilization: 0.5
+#         trajectory_consistency: 0.3
+#         trajectory_efficiency: 0.2
+      
+#       starting_straight_traffic_light_intersection_traversal:
+#         maneuver_preparedness: 0.4
+#         social_compliance: 0.3
+#         trajectory_efficiency: 0.3
+      
+#       high_lateral_acceleration:
+#         trajectory_efficiency: 0.3
+#         spatial_utilization: 0.4
+#         trajectory_consistency: 0.3
+      
+#       starting_right_turn:
+#         maneuver_preparedness: 0.4
+#         spatial_utilization: 0.3
+#         trajectory_consistency: 0.3
+      
+#       stationary_in_traffic:
+#         social_compliance: 0.6
+#         trajectory_consistency: 0.4
+#         trajectory_efficiency: 0.0
+      
+#       stopping_with_lead:
+#         social_compliance: 0.5
+#         trajectory_consistency: 0.3
+#         spatial_utilization: 0.2
+      
+#       waiting_for_pedestrian_to_cross:
+#         social_compliance: 0.4
+#         trajectory_consistency: 0.4
+#         spatial_utilization: 0.2
+      
+#       behind_long_vehicle:
+#         social_compliance: 0.5
+#         trajectory_consistency: 0.3
+#         maneuver_preparedness: 0.2
+      
+#       near_multiple_vehicles:
+#         social_compliance: 0.4
+#         spatial_utilization: 0.3
+#         trajectory_consistency: 0.3
